@@ -20,7 +20,7 @@ public class CalculatorTestCellFisico {
 		desiredCapabilities.setCapability("automationName", "uiautomator2");
 		desiredCapabilities.setCapability("appPackage", "com.sec.android.app.popupcalculator");
 		desiredCapabilities.setCapability("appActivity", "com.sec.android.app.popupcalculator.Calculator");
-		AndroidDriver<MobileElement> driver = new AndroidDriver(new URL("http://127.0.0.1:4723/wd/hub"),
+		AndroidDriver<MobileElement> driver = new AndroidDriver<MobileElement>(new URL("http://127.0.0.1:4723/wd/hub"),
 				desiredCapabilities);
 		WebElement el1 = (WebElement) driver.findElementByAccessibilityId("5");
 		el1.click();

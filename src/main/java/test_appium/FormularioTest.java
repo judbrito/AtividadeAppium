@@ -1,105 +1,89 @@
 package test_appium;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import static core.DriverFactory.getDriver;
+import static core.DriverFactory.killDriver;
 
+import java.net.MalformedURLException;
+
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.remote.DesiredCapabilities;
 
+import core.Dsl;
 import io.appium.java_client.MobileBy;
-import io.appium.java_client.MobileElement;
-import io.appium.java_client.android.AndroidDriver;
-import io.appium.java_client.remote.MobileCapabilityType;
 
 public class FormularioTest {
+	Dsl dsl = new Dsl();
+
+	@Before
+	public void inicializarAppium() {
+		getDriver();
+		getDriver().findElement(By.xpath("//android.widget.TextView[@text='Formulário']")).click();
+	}
+
+	@After
+	public void tearDown() {
+		killDriver();
+	}
 
 	@Test
-
 	public void preencherCampoTexto() throws MalformedURLException {
-		DesiredCapabilities desiredCapabilities = new DesiredCapabilities();
-		desiredCapabilities.setCapability("platformName", "Android");
-		desiredCapabilities.setCapability("deviceName", "emulator");
-		desiredCapabilities.setCapability("automationName", "uiautomator2");
-		desiredCapabilities.setCapability(MobileCapabilityType.APP,
-				"C:\\Users\\JudrianideBrito\\PROJETO BRITO\\AulaAppium\\src\\main\\resources\\CTAppium_2_0.apk");
-		AndroidDriver<MobileElement> driver = new AndroidDriver(new URL("http://127.0.0.1:4723/wd/hub"),
-				desiredCapabilities);
-		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-		List<MobileElement> elementoEncontrado = driver.findElements(By.className("android.widget.TextView"));
 
-		for (MobileElement elemento : elementoEncontrado) {
-			System.out.println(elemento.getText());
-		}
-
-		elementoEncontrado.get(1).click();
-
-		WebElement campoNome = driver.findElement(MobileBy.AccessibilityId("nome"));
-		campoNome.sendKeys("Brito");
-
-		String text = campoNome.getText();
-
-		Assert.assertEquals("Brito", text);
-		System.out.println("Nome digitado é " + text);
-
-		driver.quit();
+		dsl.escrever(MobileBy.className("android.widget.EditText"), "Brito");
+		String texto = dsl.obterTexto(MobileBy.className("android.widget.EditText"));
+		Assert.assertEquals("Brito", texto);
+		System.out.println("Nome digitado é " + texto);
 	}
 
 	@Test
-
-	public void deveInteragirCombo() throws MalformedURLException {
-		DesiredCapabilities desiredCapabilities = new DesiredCapabilities();
-		desiredCapabilities.setCapability("platformName", "Android");
-		desiredCapabilities.setCapability("deviceName", "emulator");
-		desiredCapabilities.setCapability("automationName", "uiautomator2");
-		desiredCapabilities.setCapability(MobileCapabilityType.APP,
-				"C:\\Users\\JudrianideBrito\\PROJETO BRITO\\AulaAppium\\src\\main\\resources\\CTAppium_2_0.apk");
-
-		AndroidDriver<MobileElement> driver = new AndroidDriver(new URL("http://127.0.0.1:4723/wd/hub"),
-				desiredCapabilities);
-		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-
-		driver.findElement(By.xpath("//android.widget.TextView[@text='Formulário']")).click();
-
-		driver.findElement(MobileBy.AccessibilityId("console")).click();
-
-		driver.findElement(By.xpath("//android.widget.CheckedTextView[@text='PS4']")).click();
-
-		String text = driver.findElement(By.xpath("//android.widget.Spinner/android.widget.TextView")).getText();
+	public void deveInteragirCombo() {
+		dsl.selecionarCombo(MobileBy.AccessibilityId("console"), "PS4");
+		String text = dsl.obterTexto(By.xpath("//android.widget.Spinner/android.widget.TextView"));
 		Assert.assertEquals("PS4", text);
-		driver.quit();
+
+	}
+
+	@Test
+	public void deveInteragirSwichtCheckbox() {
+		dsl.clickElement(By.className("android.widget.CheckBox"));
+		dsl.clickElement(MobileBy.AccessibilityId("switch"));
+		Assert.assertTrue(dsl.isCheckMarcado(By.className("android.widget.CheckBox")));
+		Assert.assertFalse(dsl.isCheckMarcado(MobileBy.AccessibilityId("switch")));
 
 	}
 
 	@Test
 
-	public void deveInteragirSwichtCheckbox() throws MalformedURLException {
-		DesiredCapabilities desiredCapabilities = new DesiredCapabilities();
-		desiredCapabilities.setCapability("platformName", "Android");
-		desiredCapabilities.setCapability("deviceName", "emulator");
-		desiredCapabilities.setCapability("automationName", "uiautomator2");
-		desiredCapabilities.setCapability(MobileCapabilityType.APP,
-				"C:\\Users\\JudrianideBrito\\PROJETO BRITO\\AulaAppium\\src\\main\\resources\\CTAppium_2_0.apk");
+	public void deveRealizarCadastro() {
+		dsl.clicarPorTexto("Formulário");
+		dsl.escrever(By.className("android.widget.EditText"), "digitei algo");
+		dsl.selecionarCombo(MobileBy.AccessibilityId("console"), "Nintendo Switch");
+		dsl.clickElement(By.className("android.widget.CheckBox"));
+		dsl.clickElement(MobileBy.AndroidUIAutomator("new UiSelector().textContains(\"ON\")"));
+		dsl.clicarPorTexto("SALVAR");
 
-		AndroidDriver<MobileElement> driver = new AndroidDriver(new URL("http://127.0.0.1:4723/wd/hub"),
-				desiredCapabilities);
-		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+		String elementText = dsl.obterTexto(By.className("android.widget.EditText"));
+		Assert.assertEquals("digitei algo", elementText);
 
-		driver.findElement(By.xpath("//*[@text='Formulário']")).click();
+		String elementText1 = dsl.obterTexto(MobileBy.xpath("//android.widget.TextView[@text='Nintendo Switch']"));
+		Assert.assertEquals("Nintendo Switch", elementText1);
 
-		MobileElement check = driver.findElement(By.className("android.widget.CheckBox"));
-		check.click();
+		String elementText2 = dsl.obterTexto(MobileBy.xpath("//android.widget.TextView[@text='Slider: 25']"));
+		Assert.assertEquals("Slider: 25", elementText2);
 
-		MobileElement suich = driver.findElement(MobileBy.AccessibilityId("switch"));
-		suich.click();
+		String elementText3 = dsl.obterTexto(MobileBy.xpath("//android.widget.TextView[@text='Switch: Off']"));
+		Assert.assertEquals("Switch: Off", elementText3);
 
-		Assert.assertTrue(check.getAttribute("checked").equals("true"));
-		Assert.assertTrue(suich.getAttribute("checked").equals("false"));
-		driver.quit();
+		String elementText4 = dsl.obterTexto(MobileBy.xpath("//android.widget.TextView[@text='Checkbox: Marcado']"));
+		Assert.assertEquals("Checkbox: Marcado", elementText4);
+
+		String elementText5 = dsl.obterTexto(MobileBy.xpath("//android.widget.TextView[@text='Data: 01/01/2000']"));
+		Assert.assertEquals("Data: 01/01/2000", elementText5);
+
+		String elementText6 = dsl.obterTexto(MobileBy.xpath("//android.widget.TextView[@text='Hora: 12:00']"));
+		Assert.assertEquals("Hora: 12:00", elementText6);
 
 	}
 }
